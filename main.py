@@ -1,8 +1,24 @@
-from fastapi import FastAPI
-import requests
+# main.py
+from fastapi import FastAPI, HTTPException
+from dotenv import load_dotenv
 import os
+import requests# main.py
+from fastapi.middleware.cors import CORSMiddleware
+
+load_dotenv()  # Load .env into environment
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://cherished-reflect-856896.framer.app/"],  # For testing, allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
 
 AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
 AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME")
@@ -14,9 +30,31 @@ def root():
 
 @app.get("/businesses")
 def get_businesses():
+    if not (AIRTABLE_BASE_ID and AIRTABLE_TABLE_NAME and AIRTABLE_API_KEY):
+        raise HTTPException(status_code=500, detail="Missing Airtable configuration")
+
     url = f"https://api.airtable.com/v0/{AIRTABLE_BASE_ID}/{AIRTABLE_TABLE_NAME}"
     headers = {
         "Authorization": f"Bearer {AIRTABLE_API_KEY}"
     }
-    response = requests.get(url, headers=headers)
-    return response.json()
+
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Airtable API request failed: {str(e)}")
+
+    data = response.json()
+
+    businesses = []
+    for record in data.get("records", []):
+        fields = record.get("fields", {})
+        businesses.append({
+            "id": record.get("id"),
+            "name": fields.get("Name"),
+            "category": fields.get("Category"),
+            "address": fields.get("Address"),
+            "phone": fields.get("Phone"),
+        })
+
+    return {"businesses": businesses}
