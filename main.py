@@ -2,21 +2,26 @@
 from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
 import os
-import requests# main.py
+import requests
 from fastapi.middleware.cors import CORSMiddleware
-
-load_dotenv()  # Load .env into environment
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://cherished-reflect-856896.framer.app/"],  # For testing, allow all origins
+    allow_origins=[
+    "https://cherished-reflect-856896.framer.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+]
+
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
+load_dotenv()  # Load .env into environment
 
 
 
