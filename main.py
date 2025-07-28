@@ -11,9 +11,13 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://cherished-reflect-856896.framer.app",  # ✅ Removed trailing slash
+        "https://cherished-reflect-856896.framer.app",
+        "https://framer.com",
+        "https://preview.framer.com", 
+        "https://*.framer.app",  # This might not work, so let's be more specific
         "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        "http://127.0.0.1:3000",
+        "*"  # ✅ Temporary - allow all origins for debugging
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -60,12 +64,15 @@ def get_businesses():
         
         businesses.append({
             "id": record.get("id"),
-            "name": fields.get("Name"),  # Check if this should be "Business Name" or something else
-            "category": fields.get("Category"),  # Check if this should be "Type" or something else
+            "name": fields.get("Business Name"),  # ✅ Fixed field name
+            "category": fields.get("Category"),
             "address": fields.get("Address"),
-            "phone": fields.get("Phone"),
-            # ✅ Add all fields for debugging
-            "all_fields": fields  # This will show us what's actually available
+            "phone": fields.get("Phone Number"),  # ✅ Fixed field name
+            "description": fields.get("Description"),  # ✅ Added description
+            "contact_status": fields.get("Contact Status"),
+            "opt_in_status": fields.get("Opt-In Status"),
+            # Keep debug info for now
+            "all_fields": fields
         })
 
     return {"businesses": businesses}
